@@ -1,13 +1,17 @@
 pragma solidity 0.8.1;
 // 2.8.2021
+//We need to import the following to utilize the consume randomness functionality of Chainlink VRF
+import "https://raw.githubusercontent.com/smartcontractkit/chainlink/develop/evm-contracts/src/v0.6/VRFConsumerBase.sol";
 
 
-// values of variables get written to the blockchain, stored to a database 
 // declaring a variable public will enable the SC to display the variable's value to user
-contract CoinFlip {
+contract CoinFlip is VRFConsumerBase{
   uint public result;
   bytes32 public choice;
+  bytes32 public reqId;
+  uint256 public randomVal;
 
+ 
 //Event "FlipHistory" is a stream that will log all history of coinflip results. 
 // The event can be subsribed to in order to view said results
 event FlipHistory(uint hist);
@@ -24,7 +28,15 @@ constructor() public {
 // that the number was random. This random number generation (or RNG) is done 
 // across multiple nodes to guarantee that there is no single source of failure, and 
 // then XOR’d (a way to combine the answers) to make the final result. "
+constructor(address _vrfCoordinator, address _link) VRFConsumerBase(_vrfCoordinator, _link) public {
+    }
 
+function fulfillRandomness(bytes32 requestId, uint256 randomness) external override {
+        reqId = requestId;
+        randomVal = randomness;
+    }
+    
+}
 function FlipCoin() public {
 
 
