@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>repl.it</title>
+  </head>
+  <body>
+
+    <div class="title">
+      <h1> Coin Flip <h1>
+    </div>
+
+    <div class="desc">
+      <p>Players will initially receive 10 Ether. In order for a player to flip a coin, they must deposit 1 Milliether.  If the coin flips to heads, you will receive 2 Milliether. However, if the coin comes out to tails, you will not receive anything. </p>
+    </div>
+
+
+    <button class="open-button" onclick="openForm()">Play</button>
+
+    <div class="form-popup" id="myForm">
+      <form action="/action_page.php" class="form-container">
+        
+
+        <label for="Key"><b>User Key</b></label>
+        <input type="number" placeholder="Enter Key" name="email" required id="onlyNumbers" onkeypress="allowNumbersOnly(event)">
+
+        <button type="submit" class="btn">Enter</button>
+        <button type="button" class="btn cancel" onclick="closeForm()">Close</button>
+      </form>
+    </div>
+
+
+    <img src="coinflip.png">
+    
+
+
+    <script type="text/javascript" src="style.js"></script>
+    <link href="style.css" rel="stylesheet" />
+
+    
+  </body>
+</html>
