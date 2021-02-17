@@ -9,18 +9,23 @@
     <div class='container'>
         <h2>Play the coinflip game!</h2>
         <h2></h2>
-        <p>Select Head or Tail to bet</p>
         <div id="coin" class=''>
           <div id="heads" class="heads"></div>
           <div id="tails" class="tails"></div>
         </div>
-        <button id="flip">Head</button>
-        <button id="flip2">Tail</button>
+        <p>Enter the number of the token to bet:</p>
+        <input type="text" id="TEXTBOX_ID" > 
+        <p><button id="flip">Head</button>
+        <button id="flip2">Tail</button></p>
+        <p><span id="textboxmsg"></span></p>
         <p>Heads: <span id="headsCount">0</span> Tails: <span id="tailsCount">0</span> </p>
-        <p>Ether: <span id="etherCount">10</span></p>
+        <p>Tokens: <span id="tokensCount">0</span></p>
+        
         <p><span id="status"></span></p>
 
       </div>
+      <p>Enter the amount of ether to top up (1Ether = 1Token): <input type="text" id="TEXTBOX_TOPUP" >  <button id="top_up">Topup</button></p>
+      <p>Enter the amount of ether to transfer to your wallet  (1Token = 1Ether): <input type="text" id="TEXTBOX_TRANS" >  <button id="transfer">Transfer</button></p>
     <script src="play.js">
     </script>
     <link href="play.css" rel="stylesheet" />

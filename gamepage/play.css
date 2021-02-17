@@ -1,7 +1,7 @@
 h2 {
     margin: .25rem;
   }
-  body {
+body {
     background:skyblue;
 }
   div.container {
@@ -13,17 +13,24 @@ h2 {
   }
 
   button {
-    padding: 1rem;
+    padding: 0.5rem;
     background-color:red;
   }
-  
+  #top_up {
+    padding: 0.5rem;
+    background-color:green;
+  }
+  #transfer {
+    padding: 0.5rem;
+    background-color:green;
+  }
   #coin {
     position: relative;
     width: 15rem;
     height: 15rem;
     margin: 2rem 0rem;
     transform-style: preserve-3d;
-  
+
   }
   
   #coin div {
@@ -32,6 +39,7 @@ h2 {
     border: 2px solid black;
     border-radius: 50%;
     backface-visibility: hidden;
+
     background-size: contain;
     position: absolute;
   }
