@@ -1,57 +1,96 @@
 pragma solidity 0.8.1;
-// 2.8.2021
-//We need to import the following to utilize the consume randomness functionality of Chainlink VRF
-import "https://raw.githubusercontent.com/smartcontractkit/chainlink/develop/evm-contracts/src/v0.6/VRFConsumerBase.sol";
+
+    contract CoinFlip{
+      
+        uint256 public betAmount >= 1.0 finney;
+        address public player;
+        bool public result;
+        bool public resultCommitment;
+        bytes32 public playersCommitment;
+        bool public Pchoice;
+        bool public Pmade_choice = false;
+        bool public coinRevealed = false;
+        uint256 public expiration = 2**256-1; //Almost infinite
+
+        modifier onlyPlayer(){
+        require(msg.sender == player);
+        }
+
+        constructor(bytes32 _resultCommitment, bool _result, bytes32 _playersCommitment, address _player) 
+            public payable onlyPlayer{
+            require(msg.value == betAmount);
+            require(_player != address(0));
+            playersCommitment = _playersCommitment;
+            resultCommitment = _resultCommitment;
+            player = _player;
+            result = _result;
+        }
+
+// Call the following function to fund the contract
+
+            mapping (address => uint) balances;
+            function fillContract() external payable {
+                if(msg.value < 1 ether) {
+                    revert();
+            }
+            balances[msg.sender] += msg.value;
+        }
+// Call the following to view the contract's current balance
+            function contractBalance() external view returns (uint) {
+                return address(this).balance;
+            }
 
 
-// declaring a variable public will enable the SC to display the variable's value to user
-contract CoinFlip is VRFConsumerBase{
-  uint public result;
-  bytes32 public choice;
-  bytes32 public reqId;
-  uint256 public randomVal;
 
- 
-//Event "FlipHistory" is a stream that will log all history of coinflip results. 
-// The event can be subsribed to in order to view said results
-event FlipHistory(uint hist);
 
-//simply initializing value of result 
-constructor() public {
-      result = 0;
-                     }
+// Executed when player wants to make their choice via paying bet 
+// true = heads, false = tails
+     
+        function  ChooseSide(bool _Pchoice) public payable onlyPlayer{
+            require(msg.value == betAmount);
+            require(!Pmade_choice);
+            Pchoice = _Pchoice;
+            Pmade_choice = true;
+            expiration =  now + 2 hours; 
+        }
 
-//  We'll be using a Chainlink VRF to randomize the result of the coin flip.
+        function revealFlip(bool result, uint256 nonce) public {
+            require(Pmade_choice);
+            require(keccak256(abi.encodePacked(result, nonce)) == resultCommitment);
+            require(expiration > now);
 
-// "The random number is generated in a verifiably random fashion, 
-// using a public key and a private key to cryptographically prove 
-// that the number was random. This random number generation (or RNG) is done 
-// across multiple nodes to guarantee that there is no single source of failure, and 
-// then XOR’d (a way to combine the answers) to make the final result. "
-constructor(address _vrfCoordinator, address _link) VRFConsumerBase(_vrfCoordinator, _link) public {
+            //For a game to start:
+            Pmade_choice = false;
+            coinRevealed = true;
+            expiration = 2**256-1;
+
+            if(result == Pchoice){
+                player.transfer(2*betAmount);
+            } else {
+                /*/ u lose hahahahahahahaha /*/
+            }
+        }
+
+        function newGame(bytes42 _resultCommitment, address _player) public payable onlyPlayer {
+            require(msg.value == betAmount);
+            require(coinRevealed);
+            require(_player != address(0));
+            require(!Pmade_choice);
+
+            coinRevealed = false;
+            resultCommitment = _resultCommitment;
+            player = _player;
+        }
+
+        }
+
+
+
+
+
+
+    
+
+
     }
 
-function fulfillRandomness(bytes32 requestId, uint256 randomness) external override {
-        reqId = requestId;
-        randomVal = randomness;
-    }
-    
-}
-function FlipCoin() public {
-
-
-
-if (result ^ choice == 1)
-// if these values don't match the player has lost
-{
-    
-}
-else // they have won 
-{
-
-}
-
-emit FlipHistory(result);
-                            }
-    
-                    }
