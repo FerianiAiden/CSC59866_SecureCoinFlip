@@ -1,113 +1,119 @@
-let tokens;
-function toggleErrorPopup(){
-    document.getElementById("popup-error").classList.toggle("active");
-    
-  }
+console.warn = () => {}; // to suppress web3 warnings
+const Web3 = require('web3');
+const MongoClient = require('mongodb').MongoClient;
+const readline = require('readline');
+const assert = require('assert');
+//connect to kovan node
+var web3 = new Web3('https://kovan.infura.io/v3/7d692b7cfcf04c30ad77e8469bb081a4'); 
 
-function toggleTokenPopup(){
-    document.getElementById("popup-token").classList.toggle("active");
-    
-  }
 
-function initToken(){
-  //sets storagesession var, displays tokens on screen
-  //sessionStorage.setItem("tokens","Tokens: 0"); // so tokens stays the same after reload, tostring with base 10
-  if(sessionStorage.getItem("tokens")==null ){
-     document.getElementById("token-display").innerHTML = "Tokens: 0";
-  }
-  else {
-   document.getElementById("token-display").innerHTML = "Tokens: "+ sessionStorage.getItem("tokens");
-  }
-  
-}
+//address and dbname for mongodb
+const url = 'mongodb+srv://coinflip:blueteam@cluster0.bnxtq.mongodb.net/coinflip?retryWrites=true&w=majority';
+const dbName = 'coinflip';
 
-async function loadWeb3() {
-   //connects to metamask via web3
-   
-   
-   if(window.ethereum){
-     var web3js = new Web3(window.ethereum);
-     await ethereum.enable();
+//for the game
+var balance = 0; //if they get through sign in, will have their balance in milliether
+var address = "";  // if they get through sign in, this will have their address
 
-     //can use web3 with metamask
-     // after this go to game page
-     sessionStorage.setItem("tokens","0");
-     location.replace('/play.html');
- 
-   }
 
-   else if(window.web3){
-     //older versions of metamask
-     web3js = new Web3(window.web3.currentProvider);
-   }
-   else{
-     //they dont have metamask, popup shows up asking to install
-     toggleErrorPopup();
-   }
- 
-  }
+// for getting user input
+var rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-async function sendtx(){
-     //not used anywhere, might be useful for the future
-     const accounts = await web3js.eth.getAccounts();
-     const network = await web3js.eth.net.getNetworkType();
-     if(network!="ropsten"){
-       window.alert("you arent on ropsten.Please switch");
-     }
-     
-     //below code to send tx
-     var txDetails ={
-       // hard coded the addresses and amt to test, will get addresses and amt from web3 if this function is used
-      from: '0x6DE29c6a03E2694C3217820ed2e595E24f1145B9',
+var initUsers = function () {
+  rl.question("Enter 0 to make account,1 to sign in or 2 to exit:", function (line) {
+  switch (line){
+      case "0":
+          rl.question("Enter a password for your account:",  async function(password){
+            //creates new account
+            var account = await web3.eth.accounts.create();
+            var encrypedAccount = await web3.eth.accounts.encrypt(account['privateKey'],password); // encrypts their account object with password
+            account = null; // get rid of account details
+
+            // now put encryptedAccount to db
+            MongoClient.connect(url, function(err, client){
+            assert.equal(null, err);
+            //console.log("Connected successfully to server")
+
+            var dbo = client.db(dbName);
+            dbo.collection("accounts").insertOne(encrypedAccount,function(err,res){
+              if(err) throw err;
+              console.log("Your address is: ", encrypedAccount['address']);
+              console.log("Store this address somewhere as it will be needed for signing in.");
+              console.log("To play the game you need ether. Visit https://faucet.kovan.network/ to obtain kovan ether.");
+              console.log("Exiting to main menu...");
+              initUsers();
+              })
+          
+            client.close();
+            });
+          })  
+          break;
+      case "1":
+          rl.question("Enter the address for your account: ", async function(addressEntered){
+            MongoClient.connect(url, async function(err, client){
+              assert.equal(null, err);
+              //console.log("Connected successfully to server")
+          
+              var dbo = client.db(dbName);
+              var enc_account = await dbo.collection("accounts").findOne({address: addressEntered},{projection:{_id:0}});
+              if(enc_account == null){
+                console.log("No such address found. Exiting...");
+                initUsers();
+              }
+              
+              rl.question("Enter the password for your account: ",async function (passwordEntered){
+                try{
+                  await web3.eth.accounts.decrypt(enc_account,passwordEntered);
+                  address = enc_account['address'];
+                  wei_balance = await web3.eth.getBalance(enc_account['address']);
+                  balance = Number(await web3.utils.fromWei(wei_balance,"milliether"));
+                  console.log("Your address is: ", address);
+                  console.log("Your balance is: ", balance," milliether");
+                  rl.pause();
+              
+                  }
+                  catch{
+                    console.log("wrong password. Exiting...");
+                    initUsers();
+                  }
+                
+              })         
+              client.close();
+            });
+            
+          })
+          
+          break;
+      case "2":
+        console.log("Exiting...");
+        rl.pause();
+        break;
       
-       to: '0x456a6aAB3e1D116efdC5D7ae068156469CBef892',
-       value: 5954975943824,
-       chain: "ropsten"
-     }
-
-     await web3js.eth.sendTransaction(txDetails);
+      default:
+          console.log("No such option.");
+          initUsers(); //Calling this function again if they didnt input 0,1 or 2
   }
   
-function validateTokenInput(evt){
-    //force users to enter numeric values when asked to enter amt of tokens
-    var input = String.fromCharCode(evt.which);
-    if(!(/[0-9]/.test(input))){
-      evt.preventDefault();
-    }
-    
-  }
+  });
+};
+initUsers();
 
-async function convertToToken(){
-    //check what they entered and their balance, if good, convert, save the number of tokens, close popup.
-    //if not, display error
-    let web3js = new Web3(window.ethereum);
-    await ethereum.enable;
-    const accounts = await web3js.eth.getAccounts();
-    const weiBalance = await web3js.eth.getBalance(accounts[0]); //gives balance in wei
-    var milliEtherBalance = await web3js.utils.fromWei(weiBalance,'milliether'); //balance in milliether, string type
-    milliEtherBalance = parseInt(milliEtherBalance,10); //convert to number 
-     tokens = document.getElementById("token-input").value;
-    if(tokens == null || tokens == 0){
-      //say please enter an amount
-      window.alert("Please enter an amount");
-      document.getElementById("token-input").value ="";
-    }
-    
-    else if(tokens <= milliEtherBalance){
-    sessionStorage.setItem("tokens",tokens.toString(10)); // so tokens stays the same after reload, tostring with base 10
-    document.getElementById("token-display").innerHTML ="Tokens: "+ sessionStorage.getItem("tokens");
-    document.getElementById("token-input").value ="";
-    toggleTokenPopup(); 
-    }
-    else{
-      //case where they entered more tokens more tokens than they can afford. do validation error message
-      window.alert("You have entered more tokens than you can afford. Please try again");
-      document.getElementById("token-input").value ="";
-    }
-    
-  }
-  
+
+
+
+
+
 
   
+  
+
+
+  
+
+
+
 
 
