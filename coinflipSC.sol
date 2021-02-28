@@ -39,7 +39,8 @@ import "https://raw.githubusercontent.com/smartcontractkit/chainlink/master/evm-
         betAmount = 0.001 ether;
         Player_Chose = false;
         coinRevealed = false;
-        expiration = 2**256-1; 
+        expiration = 2**256-1;
+        player = msg.sender;
     }
     
         
@@ -86,7 +87,6 @@ modifier onlyPlayer(){
         require(msg.value >= betAmount, "You tried to bet less than 1 milliether");
         require(!Player_Chose ,"Player couldnt have chosen yet");
         betAmount = msg.value;
-        
         playerChoice = _PlayerChoice;
         Player_Chose = true;
         expiration =  now + 1 hours; 
