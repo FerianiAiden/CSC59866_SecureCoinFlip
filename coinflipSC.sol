@@ -89,7 +89,7 @@ modifier onlyPlayer(){
         betAmount = msg.value;
         playerChoice = _PlayerChoice;
         Player_Chose = true;
-        expiration =  now + 1 hours; 
+        expiration =  now + 5 minutes; 
         _players.push(msg.sender);
     }
     
@@ -125,7 +125,7 @@ modifier onlyPlayer(){
    function revealBothPlayers( bool _playerChoice, uint256 _result) public payable{
         require(playerCommitment == keccak256(abi.encodePacked(_playerChoice,_result)),"player cheated"); // if it doesnt pass this check, user cheated
         require(Player_Chose,"player didnt make a choice");
-        require(expiration > now + 5 minutes,"time expired");
+        require(now <= expiration,"time expired");
         
         if(casinoCommitment !=  keccak256(abi.encodePacked(result))){
             // transfer money to player since casino cheated
@@ -164,22 +164,20 @@ modifier onlyPlayer(){
         betAmount = .001 ether;
         }
         /*/ NEW functions VVVVVV /*/ 
-        function newGame(bytes32 _casinoCommitment, address payable _player) public payable onlyPlayer {
-            require(msg.value >= betAmount,"tried to bet less than 1 milliether");
+        function newGame( address payable _player) public payable onlyPlayer {
             require(coinRevealed,"coin wasnt revealed yet");
             //require(_player != address(0));
             require(!Player_Chose,"player did not choose yet");
 
             coinRevealed = false;
-            casinoCommitment = _casinoCommitment;
             player = _player;
             result = 0;
             
         }
         
-        function ForfeitGame() public onlyPlayer { //If the Casino refuses to reveal the coin result 
+        function ForfeitGame() public onlyPlayer { //If the Casino refuses to reveal the coin result,call this function 
             require(result !=0,"random number has not been set");
-            require(now > expiration,"time expired");
+            require(now > expiration,"player took to long to reveal");
             require(Player_Chose,"player didnt choose side");
             //we may have to require that the random value has already been produced, 
             player.transfer(betAmount);
