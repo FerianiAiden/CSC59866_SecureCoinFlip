@@ -136,7 +136,7 @@ modifier onlyPlayer(){
         coinRevealed = true;
         Player_Chose = false;
         expiration = 2**256 -1;
-        betAmount = 0.001 ether;
+        
         
             
     }
@@ -161,7 +161,7 @@ modifier onlyPlayer(){
         if (temp1 ^ temp2 == 0){
             player.transfer(2*betAmount);
         }
-        
+        betAmount = .001 ether;
         }
         /*/ NEW functions VVVVVV /*/ 
         function newGame(bytes32 _casinoCommitment, address payable _player) public payable onlyPlayer {
