@@ -136,6 +136,7 @@ modifier onlyPlayer(){
         coinRevealed = true;
         Player_Chose = false;
         expiration = 2**256 -1;
+        betAmount = 0.001 ether;
         
             
     }
@@ -164,7 +165,7 @@ modifier onlyPlayer(){
         }
         /*/ NEW functions VVVVVV /*/ 
         function newGame(bytes32 _casinoCommitment, address payable _player) public payable onlyPlayer {
-            require(msg.value >= betAmount,"tried to bet less than 1 ether(1)");
+            require(msg.value >= betAmount,"tried to bet less than 1 milliether");
             require(coinRevealed,"coin wasnt revealed yet");
             //require(_player != address(0));
             require(!Player_Chose,"player did not choose yet");
