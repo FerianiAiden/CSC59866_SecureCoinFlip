@@ -59,7 +59,7 @@ import "https://raw.githubusercontent.com/smartcontractkit/chainlink/master/evm-
 
             
             receive() external payable {
-                if(msg.value < 0.1 ether) {
+                if(msg.value < 0.001 ether) {
                     revert();
             }
             balances[msg.sender] += msg.value;
