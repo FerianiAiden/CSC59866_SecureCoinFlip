@@ -5,14 +5,10 @@ import "https://raw.githubusercontent.com/smartcontractkit/chainlink/master/evm-
       
         uint256 public betAmount;
         address payable public player;  // players address
-        
-        
         bool public playerChoice; // players guess(heads or tails)
         bytes32 public playerCommitment; // players hash
-        
         bool public casinoChoice; //casino guess(heads or tails)
         bytes32 public casinoCommitment; //casino hash
-        
         bool public Player_Chose;
         bool public coinRevealed;
         uint256 public expiration; 
@@ -78,14 +74,11 @@ modifier onlyPlayer(){
     _;
 }
 
-     
-
 // Executed when player wants to make their choice via paying bet 
 // true = heads, false = tails
      
     function  ChooseSide(bool _PlayerChoice) public payable onlyPlayer{
         require(msg.value >= betAmount, "You tried to bet less than 1 milliether");
-        require(player == msg.sender,"address of player isnt the same as address of current");
         require(!Player_Chose ,"Player couldnt have chosen yet");
         betAmount = msg.value;
         playerChoice = _PlayerChoice;
@@ -96,17 +89,12 @@ modifier onlyPlayer(){
     
     //function for commitment of both players
     //seed can be any number, for testing you can use math.random for it(in js)
-    function commitBothPlayers(uint256 seed) public{
+    function commitBothPlayers(uint256 seed) public onlyPlayer{
         // casinos choice is the first bit of their hash
-        
         require(Player_Chose, "player hasnt chosen yet");
-        require(player == msg.sender,"address of player isnt the same as address of current");
-        
-        getRandomNumber(seed); // gets random number, stored in result variable
-        
+        getRandomNumber(seed); 
         //casino commitment:
         casinoCommitment = keccak256(abi.encodePacked(result));
-        
         bytes32 msb = 0x0000000000000000000000000000000000000000000000000000000000000001;
         msb = msb << (32*8 - 1); // left shift to get first bit of casinoCommitment, this will be their choice
         if(casinoCommitment & msb == 0) {
@@ -124,9 +112,8 @@ modifier onlyPlayer(){
         
 // In this function we are revealing whether or not the player won. 
 // The hashed result of the coin must match its commitment, and similarly the hashed player choice must match their comittment
-   function revealBothPlayers( bool _playerChoice, uint256 _result) public payable{
+   function revealBothPlayers( bool _playerChoice, uint256 _result) public {
         require(playerCommitment == keccak256(abi.encodePacked(_playerChoice,_result)),"player cheated"); // if it doesnt pass this check, user cheated
-        require(player == msg.sender,"address of player isnt the same as address of current");
         require(Player_Chose,"player didnt make a choice");
         require(now <= expiration,"time expired");
         
@@ -139,14 +126,9 @@ modifier onlyPlayer(){
         coinRevealed = true;
         Player_Chose = false;
         expiration = 2**256 -1;
-        
-        
-            
     }
         
-        /*/ NEW VVVV /*/
     function determineWinner() public {
-        require(player == msg.sender,"address of player isnt the same as address of current");
         bytes1 temp1;
         bytes1 temp2;
         if (playerChoice = true){
@@ -170,9 +152,7 @@ modifier onlyPlayer(){
         /*/ NEW functions VVVVVV /*/ 
         function newGame( address payable _player) public payable onlyPlayer {
             require(coinRevealed,"coin wasnt revealed yet");
-            //require(_player != address(0));
             require(!Player_Chose,"player did not choose yet");
-
             coinRevealed = false;
             
             //sets address of new player
@@ -183,7 +163,7 @@ modifier onlyPlayer(){
         
         function ForfeitGame() public onlyPlayer { //If the Casino refuses to reveal the coin result,call this function 
             require(result !=0,"random number has not been set");
-            require(now > expiration,"player didnt leave(still time left)");
+            require(now > expiration,"player took to long to reveal");
             require(Player_Chose,"player didnt choose side");
             //we may have to require that the random value has already been produced, 
             player.transfer(betAmount);
