@@ -58,7 +58,7 @@ import "https://raw.githubusercontent.com/smartcontractkit/chainlink/master/evm-
 // Call the following function to fund the contract
 
             
-            function fillContract() external payable {
+            receive() external payable {
                 if(msg.value < 0.1 ether) {
                     revert();
             }
@@ -171,5 +171,6 @@ modifier onlyPlayer(){
             
             
         }
+        
         
     }
