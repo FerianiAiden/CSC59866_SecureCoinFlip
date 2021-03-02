@@ -150,7 +150,7 @@ modifier onlyPlayer(){
         betAmount = .001 ether;
         }
         /*/ NEW functions VVVVVV /*/ 
-        function newGame( address payable _player) public payable onlyPlayer {
+        function newGame( address payable _player) public onlyPlayer {
             require(coinRevealed,"coin wasnt revealed yet");
             require(!Player_Chose,"player did not choose yet");
             coinRevealed = false;
