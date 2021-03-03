@@ -4,36 +4,31 @@ import "remix_accounts.sol";
 import "./coinflipSC.sol";
 
 contract coinflipTest is CoinFlip {
-    
     CoinFlip flip;
-    address acc0;
-    address acc1;
+    address casino_account;
+    address user_account;
    
     function beforeEach() public {
-    // Create an instance of contract to be tested
-    
     flip = new CoinFlip();
     }
     
     function beforeAll() public {
-       
-        acc0 = TestsAccounts.getAccount(0);
-        acc1 = TestsAccounts.getAccount(1);
+        casino_account = TestsAccounts.getAccount(0);
+        user_account = TestsAccounts.getAccount(1);
     }
 
     function testUserRevealedValueCorrect() public returns (bool) {
-       
-        bool pchoice = false;
+        bytes32 result = keccak256(abi.encodePacked(true)) ;
+        bytes32 playerComm = keccak256(abi.encodePacked(true, result));
+        playerCommitment = keccak256(abi.encodePacked(true, result));
         
-        Assert.equal(result, 0, "result should be random");
-        return Assert.equal(pchoice, playerChoice, "playerChoice should be the same");
+        return Assert.equal(playerCommitment, playerComm, "playerCommitment should be the same, else value is not the same and user cheated");
     }
 
     function RequireCasinoChoice() public returns (bool) {
- 
-        Assert.equal(result, 0, "result should be random");
-        casinoCommitment = keccak256(abi.encodePacked(result));
+        bytes32 result = keccak256(abi.encodePacked(true)) ;
+        bytes32 casinoComm = keccak256(abi.encodePacked(result));
         
-        return Assert.equal(casinoCommitment, keccak256(abi.encodePacked(result)), "Casino commitment is required in order to continue");
+        Assert.notEqual(casinoCommitment, casinoComm, "Casino commitment is required in order to continue");
     }
 }
